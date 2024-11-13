@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import csv
 import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
