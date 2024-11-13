@@ -1,0 +1,29 @@
+# sudo date -s "2024-08-02 00:44:10" && date
+
+# MNET 5G  149/80  MAC : b0:6e:bf:a7:c1:6c
+# MNET 2.4G  6/20  MAC : b0:6e:bf:a7:c1:68
+# NoteBook MAC : d0:c6:37:8b:fc:e0
+# My NoteBook MAC : 4c:77:cb:1e:b1:da
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+
+mcp -C 1 -N 1 -c 149/80 -m b0:6e:bf:a7:c1:6c &&
+sudo ifconfig wlan0 up &&
+nexutil -Iwlan0 -s500 -b -l34 -vm+ABEQAAAQCwbr+nwWwAAAAAAAAAAAAAAAAAAAAAAAAAAA== &&
+sudo iw dev wlan0 interface add mon0 type monitor &&
+sudo ip link set mon0 up
+
+-------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------
+
+sudo tcpdump -i wlan0 -vv port 5500 -w /home/pi/Desktop/test.pcap
+
+sudo tcpdump -i wlan0 -vv port 5500 -c 2000 -w /home/pi/Desktop/a_1.pcap
+
+sudo tcpdump -i wlan0 -vv port 5500 -c 2000 -w /home/pi/Desktop/b_1.pcap
+
+sudo tcpdump -i wlan0 -vv port 5500 -c 2000 -w /home/pi/Desktop/x_1.pcap
+
+sudo tcpdump -i wlan0 -vv port 5500 -c 2000 -w /home/pi/Desktop/y_1.pcap
+

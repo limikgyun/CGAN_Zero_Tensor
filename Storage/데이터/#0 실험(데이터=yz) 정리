@@ -1,0 +1,168 @@
+6개의 위치, 즉 6개의 클래스를 가진 데이터셋을 가정하겠습니다.
+1개 위치당 800개의 CSI 데이터를 수집해 총 4800개의 데이터셋을 가지고 있으며
+80%를 학습셋, 20%를 테스트셋으로 나누었습니다.
+
+환경변화 전에 수집한 CSI 데이터셋을 "a",
+환경변화 후에 수집한 CSI 데이터셋을 "b"로 했을 때
+각 데이터셋으로 학습시킨 모델을 "a_model", "b_model" 이라고 하겠습니다.
+
+a_model을 a 데이터셋으로 테스트시 약 99%의 정확도를 보이며,
+b_model을 b 데이터셋으로 테스트시 약 100%의 정확도를 보입니다.
+
+
+교차 테스트 결과는 다음과 같습니다.
+a_model의 b 데이터셋에 대한 테스트 정확도는
+5개의 a_model이 각각
+Model c1_model - Test Accuracy: 13.85%
+Model c2_model - Test Accuracy: 13.23%
+Model c3_model - Test Accuracy: 6.98%
+Model c4_model - Test Accuracy: 10.42%
+Model c5_model - Test Accuracy: 13.85%
+
+b_model의 a 데이터셋에 대한 테스트 정확도는
+5개의 b_model이 각기
+Model c1_model - Test Accuracy: 22.81%
+Model c2_model - Test Accuracy: 20.10%
+Model c3_model - Test Accuracy: 22.60%
+Model c4_model - Test Accuracy: 18.75%
+Model c5_model - Test Accuracy: 25.73%
+
+환경 변화에 따른 영향을 볼 수 있었습니다.
+
+
+전이학습 적용 결과는 다음과 같습니다.
+a_model의 레이어를 마지막 레이어를 제외하고 전부 프리징 하고 b 데이터셋으로 전이학습시킨 결과
+정확도는 100%로 나타났습니다.
+
+이에 더해 b 데이터 셋의 클래스 6개 중 3개만을 사용하여 전이학습을 진행한 결과
+Model c1_model - Class-wise Accuracies:
+  Class 0: 0.00%
+  Class 1: 100.00%
+  Class 2: 0.00%
+  Class 3: 100.00%
+  Class 4: 0.00%
+  Class 5: 99.38%
+Model c1_model - Test Accuracy: 49.90%
+
+위와 같은 결과가 나왔습니다.
+
+
+cGAN Discriminator의 학습 목표
+cGAN의 Discriminator는 다음과 같은 목표를 가지고 학습됩니다:
+1. 실제 데이터와 생성된 데이터를 정확히 구분하는 능력 향상</searchRefSen
+2. 입력된 이미지가 주어진 레이블과 일치하는지 여부를 판단하는 능력 개발</searchRefSen
+3. 생성자(Generator)가 만들어낸 가짜 데이터를 탐지하는 능력 향상</searchRefSen
+
+
+제안하는 Scheme은 다음과 같습니다.
+- 제안모델(GAN/C,D,G)는 환경변화 후의 일부 레이블만 가지고(특정 레이블은 전부 누락된단 의미)
+  환경변화 후의 위치예측을 할 수 있도록 전이학습을 실시함.
+- 이 때, 입력된 레이블에 대해서만 학습이 되므로
+  환경변화 후의 수집되지 않은 레이블에 대한 데이터를 생성하도록 cGAN을 학습시킵니다.
+- cGAN(base용)은 환경변화 전의 완전한 데이터를 통해 학습
+- cGAN(transfer용)은 환경변화 후의 일부 레이블에 대한 데이터만으로 전이학습을 하고
+  누락된 레이블의 데이터를 생성하도록 함.
+- cGAN이 생산한 누락된 레이블의 데이터를 제안모델의 환경변화 후의 전이학습에 활용
+
+위치 예측 시나리오 #1
+1. User가 WiFi CSI 신호를 수집/전송
+2. 제안 모델(GAN/C,D,G)의 Classifier가 수신된 CSI의 레이블을 분류, 즉 위치예측값 반환
+위치 예측 시나리오 #2
+1. User가 WiFi CSI 신호를 수집/전송
+2. 수신된 CSI에 임의의 레이블을 붙임
+3. 제안 모델(cGAN/D,G)의 Discriminator에 2. 데이터를 입력, 레이블 예측 결과 반환
+
+240913 실험결과
+- transfer의 base 용도로 사용하기 위한 cGAN을 환경변화 전의 완전한 데이터로 통해 학습
+- 위와 같이 학습 완료된 cGAN을 마지막 레이어를 제외한 나머지 부분을 프리징하고
+  환경변화 후의 일부 레이블에 대한 데이터만으로 전이학습을 실시함
+- 전이학습된 모델의 정확도는 보는 그래프와 같음
+- 전이학습된 cGAN이 학슶하지 않았던 누락된 레이블의 데이터를 생성하도록 함.
+- cGAN이 생산한 누락된 레이블의 데이터를 제안모델의 환경변화 후의 전이학습에 활용
+- 그 결과
+
+Model c1_model - Class-wise Accuracies:
+  Class 0: 68.12%
+  Class 1: 100.00%
+  Class 2: 48.12%
+  Class 3: 100.00%
+  Class 4: 0.00%
+  Class 5: 99.38%
+Model c1_model - Test Accuracy: 69.27%
+cGAN이 누락된 레이블에 대한 데이터 생성능력이 낮음을 확인...
+
++Model c1_model - Class-wise Accuracies:
+  Class 0: 49.38%
+  Class 1: 100.00%
+  Class 2: 0.00%
+  Class 3: 100.00%
+  Class 4: 68.75%
+  Class 5: 99.38%
+Model c1_model - F1 Score: 0.63
+Model c1_model - Test Accuracy: 69.58%
+
+
+
+
+
+
+
+
+
+
+대조군으로 랜덤 노이즈값을 넣어야 해...!
+Model c1_model - Class-wise Accuracies:
+  Class 0: 0.00%
+  Class 1: 100.00%
+  Class 2: 0.00%
+  Class 3: 100.00%
+  Class 4: 1.88%
+  Class 5: 99.38%
+Model c1_model - Test Accuracy: 50.21%
+
++ 대조군으로 전이학습이 되기 전의 cGAN으로 (0, 2, 4) 레이블에 대한 데이터를 생성한 경우
+Model c1_model - Class-wise Accuracies:
+  Class 0: 0.00%
+  Class 1: 100.00%
+  Class 2: 0.00%
+  Class 3: 100.00%
+  Class 4: 0.00%
+  Class 5: 99.38%
+Model c1_model - F1 Score: 0.34
+Model c1_model - Test Accuracy: 49.90%
+
+
+"""
+※ 이 때, 모든 레이블에 대해 학습한 모델 a를 쓰는 게 좋을까??
+
+레이블이 총 6개일 때,
+레이블 각각에 대응해 학습한 모델 b_1, b_2, b_3, b_4, b_5, b_6을 가정
+
+모델 a가 생성하는 데이터는 6개 레이블 중 랜덤한 데이터
+b_1~b_6이 생성하는 데이터는 각각의 레이블에 대응하는 데이터
+
+학습완료된 b_1을 환경을 변화시킨 후 수집한 레이블 1의 데이터로 전이학습하여 b_1* 모델 생성
+b_1* 모델과 b_1 모델의 W의 변화량을 기록
+
+위 과정을 b_3, b_5에 대해서도 진행하여 W의 변화량을 각기 기록
+
+b_1, b_3, b_5에서 기록한 W의 변화량의 평균을
+b_2, b_4, b_6 모델의 W에 더하여 CSI를 생성토록 함.
+
+이 경우, W값이 더해진 b_2, b_4, b_6 모델은
+환경변화 후의 레이블 2, 4, 6에 대한 데이터를 생성할 가능성이 높아진다고 생각함.
+
+Case 2.
+위 상황에 더해
+모든 레이블에 대해 학습한 모델 a가 있을 때,
+모델 a가 환경 변화 후 수집한 레이블 1의 데이터로 전이학습하여 a_1* 모델 생성
+모델 a와 모델 a_1* 의 W의 변화량을 기록
+
+위 변화량과
+기록된 b_1* 모델과 b_1 모델의 W의 변화량 중
+교집합인 변화량만을 기록!
+
+위 과정을 a_3*과 b_3, a_5*과 b_5에 대해서도 진행하여 교집합인 W의 변화량을 각기 기록
+
+
+"""

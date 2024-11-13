@@ -1,0 +1,99 @@
+각각 a/b/c 데이터셋으로 학습한 3개의 모델을 각각 데이터셋 "a_0"로 평가한 결과
+a_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 100.00%
+  Class 2: 100.00%
+a_model - F1 Score: 1.00
+b_model - Class-wise Accuracies:
+  Class 0: 61.20%
+  Class 1: 72.80%
+  Class 2: 6.40%
+b_model - F1 Score: 0.43
+c_model - Class-wise Accuracies:
+  Class 0: 44.80%
+  Class 1: 21.60%
+  Class 2: 84.40%
+c_model - F1 Score: 0.48
+a_model - Test Accuracy: 100.00%   # a로 학습했기 때문에 a로 평가 시 정확도 100%~!
+b_model - Test Accuracy: 46.80%
+c_model - Test Accuracy: 50.27%
+
+각각 a/b/c 데이터셋으로 학습한 3개의 모델을 각각 데이터셋 "b_0"로 평가한 결과
+a_model - Class-wise Accuracies:
+  Class 0: 43.60%
+  Class 1: 81.60%
+  Class 2: 17.60%
+a_model - F1 Score: 0.46
+b_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 100.00%
+  Class 2: 100.00%
+b_model - F1 Score: 1.00
+c_model - Class-wise Accuracies:
+  Class 0: 56.40%
+  Class 1: 19.60%
+  Class 2: 68.40%
+c_model - F1 Score: 0.45
+a_model - Test Accuracy: 47.60%
+b_model - Test Accuracy: 100.00%
+c_model - Test Accuracy: 48.13%
+
+각각 a/b/c 데이터셋으로 학습한 3개의 모델을 각각 데이터셋 "c_0"로 평가한 결과
+a_model - Class-wise Accuracies:
+  Class 0: 49.60%
+  Class 1: 99.60%
+  Class 2: 37.60%
+a_model - F1 Score: 0.60
+b_model - Class-wise Accuracies:
+  Class 0: 50.80%
+  Class 1: 83.20%
+  Class 2: 9.60%
+b_model - F1 Score: 0.43
+c_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 100.00%
+  Class 2: 100.00%
+c_model - F1 Score: 1.00
+a_model - Test Accuracy: 62.27%
+b_model - Test Accuracy: 47.87%
+c_model - Test Accuracy: 100.00%
+
+
+Model c1_model - Class-wise Accuracies:
+  Class 0: 60.80%
+  Class 1: 100.00%
+  Class 2: 0.00%
+Model c1_model - F1 Score: 0.43
+Model c1_model - Test Accuracy: 53.60%
+
+
+# Merged(Real[0,2]+Fake[1])_csi.pickle 로 a모델을 b_0로 평가한 결과
+Model c1_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 93.60%  vs  Class 1: 81.60%
+  Class 2: 100.00%
+Model c1_model - F1 Score: 0.98
+Model c1_model - Test Accuracy: 97.87%
+
+# Merged a (Real[0,2]+Fake[1])_csi.pickle 로 c모델을 전이학습 후 a_0로 평가한 결과
+Model c1_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 55.60%   vs   Class 1: 21.60%
+  Class 2: 100.00%
+Model c1_model - F1 Score: 0.84
+Model c1_model - Test Accuracy: 85.20%
+
+Model c2_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 53.60%   vs   Class 1: 21.60%
+  Class 2: 100.00%
+Model c2_model - F1 Score: 0.84
+Model c2_model - Test Accuracy: 84.53%
+
+# Merged b (Real[0,2]+Fake[1])_csi.pickle 로 c모델을 전이학습시키고 b_0로 평가한 결과
+Model c2_model - Class-wise Accuracies:
+  Class 0: 100.00%
+  Class 1: 58.00%    vs   Class 1: 19.60%
+  Class 2: 100.00%
+Model c2_model - F1 Score: 0.85
+Model c2_model - Test Accuracy: 86.00%
