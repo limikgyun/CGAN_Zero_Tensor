@@ -8,7 +8,7 @@ from tensorflow.keras.optimizers import Adam
 # def custom_activation(output):
 #     logexpsum = K.sum(K.exp(output), axis=-1, keepdims=True)
 #     result= logexpsum/ (logexpsum+ 1.0)
-0#     return result
+#     return result
 
 class CustomActivation(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
