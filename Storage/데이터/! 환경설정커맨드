@@ -19,4 +19,8 @@ python3 -m pip install tensorflow[and-cuda]
 sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/3bf863cc.pub
 sudo sh -c 'echo "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64 /" > /etc/apt/sources.list.d/cuda.list'
 sudo apt-get update
-sudo apt-get install cuda-compat-12-5                 
+sudo apt-get install cuda-compat-12-5
+
+export PATH=/usr/local/cuda-12.5/bin:$PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-12.5/lib64:$LD_LIBRARY_PATH
+source ~/.bashrc

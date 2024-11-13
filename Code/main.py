@@ -94,15 +94,27 @@ def fit_CGAN(run, g_model, d_model, gan_model, n_samples, n_classes, X_sup, y_su
         writer = csv.writer(file)
         writer.writerow(['Step', 'Real Accuracy', 'Fake Accuracy', 'D Loss Real', 'D Loss Fake', 'G Loss'])
         for i in range(n_steps):
+            # # update discriminator (d)
+            # [X_real, labels_real], y_real = generate_real_samples((X_tra, y_tra), half_batch)
+            # # d_loss1, real_acc = d_model.train_on_batch([X_real, labels_real], y_real)
+            # d_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
+            # real_acc = np.mean(d_model.predict([X_real, labels_real]))
+            # [X_fake, labels_fake], y_fake = c_generate_fake_samples(g_model, latent_dim, half_batch, n_classes)
+            # d_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
+            # fake_acc = np.mean(d_model.predict([X_fake, labels_fake]))            
+            
             # update discriminator (d)
             [X_real, labels_real], y_real = generate_real_samples((X_tra, y_tra), half_batch)
-            # print(X_real.shape)
-            d_loss1 = d_model.train_on_batch([X_real, labels_real], y_real)
-            real_acc = np.mean(d_model.predict([X_real, labels_real]))
-
+            print('X_real.shape, labels_real.shape, y_real.shape')
+            print(X_real.shape, labels_real.shape, y_real.shape)
+            print('d_model.input')
+            print(d_model.input)
+            print('d_model.output')
+            print(d_model.output)
+            d_loss1, real_acc = d_model.train_on_batch([X_real, labels_real], y_real)
+            # d_loss1, real_acc = d_model.train_on_batch([X_real, labels_real], y_real)
             [X_fake, labels_fake], y_fake = c_generate_fake_samples(g_model, latent_dim, half_batch, n_classes)
-            d_loss2 = d_model.train_on_batch([X_fake, labels_fake], y_fake)
-            fake_acc = np.mean(d_model.predict([X_fake, labels_fake]))
+            d_loss2, fake_acc = d_model.train_on_batch([X_fake, labels_fake], y_fake)
 
             # update generator (g)
             z_input, labels_input = generate_latent_points(latent_dim, n_batch), np.random.randint(0, n_classes, n_batch)
@@ -168,10 +180,6 @@ def run_cgan(pickle_file_path):# 전이학습의 base가 될 cGAN 모델 학습
     n_classes = 9
     n_samples = [3000]
     run_times = 1
-    # optimizer = Adam(learning_rate=0.0002, beta_1=0.5)
-    optimizer_d = Adam(learning_rate=0.0002, beta_1=0.5)
-    optimizer_g = Adam(learning_rate=0.0002, beta_1=0.5)
-    optimizer_gan = Adam(learning_rate=0.0002, beta_1=0.5)
     n_epochs = 100
     n_batch = 128
 
@@ -187,27 +195,28 @@ def run_cgan(pickle_file_path):# 전이학습의 base가 될 cGAN 모델 학습
             # change seed for each run
             seed(run_times)
             # define a cGAN model
-            d_model = c_define_discriminator(n_classes, optimizer_d)
-            d_model.compile(loss='binary_crossentropy', optimizer=optimizer_d, metrics=['accuracy'])
-            g_model = c_define_generator(n_classes)
+            d_model = define_discriminator_c(n_classes)
+            g_model = define_generator_c(n_classes)
+            gan_model = define_gan_c(g_model, d_model)
+            # d_model = define_discriminator_c(n_classes, optimizer_d)
+            # d_model.compile(loss='binary_crossentropy', optimizer=optimizer_d, metrics=['accuracy'])
             # g_model.compile(loss='binary_crossentropy', optimizer=optimizer_g, metrics=['accuracy'])
-            gan_model = c_define_GAN(g_model, d_model, optimizer_gan)
-            gan_model.compile(loss='binary_crossentropy', optimizer=optimizer_g, metrics=['accuracy'])
+            # gan_model = define_gan_c(g_model, d_model, optimizer_gan)
+            # gan_model.compile(loss='binary_crossentropy', optimizer=optimizer_g, metrics=['accuracy'])
 
-            # train the cGAN model
+            # d_model.summary()
+            # g_model.summary()
+            # gan_model.summary()
+
             tst_acc = fit_CGAN(i, g_model, d_model, gan_model, n_samples[j], n_classes, X_sup, y_sup, dataset, n_epochs, n_batch)
-
             history.append(max(tst_acc))
-        
         # best = max(history)
         if len(history) >= 1:
             best = sum(history[-1:]) / 1
         else:
             best = sum(history) / len(history)  # history의 길이가 2보다 작을 경우 전체 평균
-        # d_model.summary()
-        # g_model.summary()
-    g_model.save('/home/limikgyun/CGAN_Zero_Tensor/Storage/모델/Base-C간-{}-g-{}샘플-{}에폭.h5'.format(data_name, n_samples[j], n_epochs))
-    d_model.save('/home/limikgyun/CGAN_Zero_Tensor/Storage/모델/Base-C간-{}-d-{}샘플-{}에폭.h5'.format(data_name, n_samples[j], n_epochs))
+    g_model.save('/home/limikgyun/CGAN_Zero_Tensor/Storage/모델/Base-C간-{}-g-{}샘플-{}에폭-{}.h5'.format(data_name, n_samples[j], n_epochs, int(best*100)))
+    d_model.save('/home/limikgyun/CGAN_Zero_Tensor/Storage/모델/Base-C간-{}-d-{}샘플-{}에폭-{}.h5'.format(data_name, n_samples[j], n_epochs, int(best*100)))
 
 def run_trans_cgan(pickle_file_path, d_path, g_path):# 전이학습의 base가 될 cGAN 모델 학습
     data_file_name_with_ext = os.path.basename(pickle_file_path)
