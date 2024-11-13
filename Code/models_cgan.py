@@ -126,7 +126,8 @@ def c_define_trans_discriminator(n_classes, opt, in_shape=(1, 256, 1)):
     fe = Dense(1)(fe)
     
     # Discriminator D
-    d_out_layer = Lambda(custom_activation)(fe)
+    # d_out_layer = Lambda(custom_activation)(fe)
+    d_out_layer = CustomActivation()(fe)
     d_model = Model([inp, label], d_out_layer)
     
     # Freeze all layers except the last two
