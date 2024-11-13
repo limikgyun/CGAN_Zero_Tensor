@@ -8,9 +8,6 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
-from tensorflow.keras.layers import Dense, Flatten
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.datasets import mnist
 from numpy.random import seed
 from models import *
 from models_cgan import *
@@ -128,47 +125,6 @@ def fit_CGAN(run, g_model, d_model, gan_model, n_samples, n_classes, X_sup, y_su
     print('총 소요 시간 : ', int(elapsed_time),'초', '\n에포크별 소요 시간 : ', int(elapsed_time / n_epochs),'초')  # 소요된 시간 출력
     return tst_history
 
-def fit_GAN_for_case2(run, g_model, d_model, c_model, gan_model, n_samples, n_classes, dataset, n_epochs, n_batch, latent_dim = 100):
-    tst_history = []
-    X_tra, y_tra, X_tst, y_tst = dataset
-    
-    # calculate the number of batches per training epoch
-    bat_per_epo = int(X_tra.shape[0] / n_batch)
-    
-    # calculate the number of training iterations
-    n_steps = bat_per_epo * n_epochs
-
-    # calculate the size of half a batch of samples
-    half_batch = int(n_batch / 2)
-
-    # open CSV file for writing
-    with open('d_model_predictions.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        # write the header
-        writer.writerow(['Step', 'Real Data Accuracy', 'Fake Data Accuracy'])
-
-        # fit the model
-        for i in range(n_steps):
-            # # update discriminator (c)
-            # [Xsup_real, ysup_real], _ = generate_real_samples([X_sup, y_sup], half_batch)
-            # c_loss, c_acc = c_model.train_on_batch(Xsup_real, ysup_real)
-            # update discriminator (d)
-            X_fake, y_fake = generate_fake_samples(g_model, latent_dim, half_batch)
-            d_loss2, d_acc2 = d_model.train_on_batch(X_fake, y_fake)
-            # update generator (g)
-            X_gan, y_gan = generate_latent_points(latent_dim, n_batch), np.ones((n_batch, 1))
-            g_loss = gan_model.train_on_batch(X_gan, y_gan)
-            # summarize loss on this batch
-            print('>%d/%d/%d, d[%.3f,%.0f], g[%.3f]' % (run+1, i+1, n_steps, d_loss2, d_acc2*100, g_loss))
-            # write discriminator accuracies to CSV
-            writer.writerow([i+1, d_acc2])
-            # test after a epoch
-            if (i+1) % (bat_per_epo * 1) == 0:
-                _, _acc = c_model.evaluate(X_tst, y_tst, verbose=0)
-                print('Test Accuracy: %.3f' % (_acc * 100))
-                tst_history.append(_acc)
-    return tst_history
-
 def run_base(pickle_file_path):  # pickle_file을 매개변수로 받도록 수정
     data_file_name_with_ext = os.path.basename(pickle_file_path)
     data_name, _ = os.path.splitext(data_file_name_with_ext)
@@ -213,7 +169,8 @@ def run_cgan(pickle_file_path):# 전이학습의 base가 될 cGAN 모델 학습
     n_samples = [3000]
     run_times = 1
     # optimizer = Adam(learning_rate=0.0002, beta_1=0.5)
-    optimizer = Adam(learning_rate=0.0002, beta_1=0.5)
+    optimizer_d = Adam(learning_rate=0.0002, beta_1=0.5)
+    optimizer_g = Adam(learning_rate=0.0002, beta_1=0.5)
     optimizer_gan = Adam(learning_rate=0.0002, beta_1=0.5)
     n_epochs = 100
     n_batch = 128
@@ -230,9 +187,12 @@ def run_cgan(pickle_file_path):# 전이학습의 base가 될 cGAN 모델 학습
             # change seed for each run
             seed(run_times)
             # define a cGAN model
-            d_model = c_define_discriminator(n_classes, optimizer)
+            d_model = c_define_discriminator(n_classes, optimizer_d)
+            d_model.compile(loss='binary_crossentropy', optimizer=optimizer_d, metrics=['accuracy'])
             g_model = c_define_generator(n_classes)
+            # g_model.compile(loss='binary_crossentropy', optimizer=optimizer_g, metrics=['accuracy'])
             gan_model = c_define_GAN(g_model, d_model, optimizer_gan)
+            gan_model.compile(loss='binary_crossentropy', optimizer=optimizer_g, metrics=['accuracy'])
 
             # train the cGAN model
             tst_acc = fit_CGAN(i, g_model, d_model, gan_model, n_samples[j], n_classes, X_sup, y_sup, dataset, n_epochs, n_batch)

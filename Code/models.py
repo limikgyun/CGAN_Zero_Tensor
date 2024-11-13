@@ -5,11 +5,18 @@ import tensorflow.keras.backend as K
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import BatchNormalization, Lambda, Conv1D, Conv2D, LeakyReLU,ReLU, Dropout, Flatten, Dense, Activation, Reshape, Conv2DTranspose, Input
 
-def custom_activation(output):
-    logexpsum = K.sum(K.exp(output), axis=-1, keepdims=True)
-    result= logexpsum/ (logexpsum+ 1.0)
+# def custom_activation(output):
+#     logexpsum = K.sum(K.exp(output), axis=-1, keepdims=True)
+#     result= logexpsum/ (logexpsum+ 1.0)
+#     return result
 
-    return result
+class CustomActivation(tf.keras.layers.Layer):
+    def __init__(self, **kwargs):
+        super(CustomActivation, self).__init__(**kwargs)
+    def call(self, inputs):
+        logexpsum = K.sum(K.exp(inputs), axis=-1, keepdims=True)
+        result = logexpsum / (logexpsum + 1.0)
+        return result
 
 def define_discriminator(n_classes, opt, in_shape=(1, 256, 1)):
     inp = Input(shape= in_shape)
@@ -31,7 +38,8 @@ def define_discriminator(n_classes, opt, in_shape=(1, 256, 1)):
     c_model = Model(inp, c_out_layer)
     c_model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=['accuracy'])
     #Discriminator D
-    d_out_layer = Lambda(custom_activation)(fe)
+    # d_out_layer = Lambda(custom_activation)(fe)
+    d_out_layer = CustomActivation()(fe)
     d_model = Model(inp, d_out_layer)
     d_model.compile(loss='binary_crossentropy', optimizer=opt, metrics=['accuracy'])
 
